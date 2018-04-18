@@ -371,6 +371,7 @@
             img.exifdata = data || {};
             var iptcdata = findIPTCinJPEG(binFile);
             img.iptcdata = iptcdata || {};
+
             if (EXIF.isXmpEnabled) {
                var xmpdata= findXMPinJPEG(binFile);
                img.xmpdata = xmpdata || {};               
@@ -413,8 +414,11 @@
                 if (debug) console.log("Got file of length " + e.target.result.byteLength);
                 handleBinaryFile(e.target.result);
             };
-
-            fileReader.readAsArrayBuffer(img);
+            
+            if(EXIF.maxBytesToRead)
+                fileReader.readAsArrayBuffer(img.slice(0, EXIF.maxBytesToRead));
+            else
+                fileReader.readAsArrayBuffer(img);
         }
     }
 
@@ -468,7 +472,7 @@
         }
 
         var offset = 2,
-            length = file.byteLength;
+            length = file.byteLength -5;
 
 
         var isFieldSegmentStart = function(dataView, offset){
@@ -971,6 +975,10 @@
 
     EXIF.disableXmp = function() {
         EXIF.isXmpEnabled = false;
+    }
+
+    EXIF.setMaxBytes = function(bytes) {
+        EXIF.maxBytesToRead = bytes;
     }
 
     EXIF.getData = function(img, callback) {
